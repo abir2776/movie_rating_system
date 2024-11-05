@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% block body_block %}
+<div class="container my-5">
+    <h2 class="my-5">My Movies</h2>
+    <div class="row" id="movie-list">
+        <!-- Movies will be dynamically loaded here -->
+    </div>
+
+    <!-- Button to Open the Add Movie Modal -->
+    <button class="btn btn-success" data-toggle="modal" data-target="#addMovieModal">Add Movie</button>
+
+    <!-- Add Movie Modal -->
+    <div class="modal fade" id="addMovieModal" tabindex="-1" role="dialog" aria-labelledby="addMovieModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMovieModalLabel">Add New Movie</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-movie-form">
+                        <div class="form-group">
+                            <label for="title">Title:</label>
+                            <input type="text" id="title" name="title" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="genre">Genre:</label>
+                            <select id="genre" name="genre" class="form-control" required>
+                                <option value="">Select Genre</option>
+                                <option value="ACTION">Action</option>
+                                <option value="ADVENTURE">Adventure</option>
+                                <option value="ANIMATION">Animation</option>
+                                <option value="BIOGRAPHY">Biography</option>
+                                <option value="COMEDY">Comedy</option>
+                                <option value="CRIME">Crime</option>
+                                <option value="DOCUMENTARY">Documentary</option>
+                                <option value="DRAMA">Drama</option>
+                                <option value="FAMILY">Family</option>
+                                <option value="FANTASY">Fantasy</option>
+                                <option value="HISTORY">History</option>
+                                <option value="HORROR">Horror</option>
+                                <option value="MUSIC">Music</option>
+                                <option value="MYSTERY">Mystery</option>
+                                <option value="ROMANCE">Romance</option>
+                                <option value="SCIENCE_FICTION">Science Fiction</option>
+                                <option value="SPORT">Sport</option>
+                                <option value="THRILLER">Thriller</option>
+                                <option value="WAR">War</option>
+                                <option value="WESTERN">Western</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="publish_date">Publish Date:</label>
+                            <input type="date" id="publish_date" name="publish_date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="producer">Producer:</label>
+                            <input type="text" id="producer" name="producer" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lead_actors">Lead Actors:</label>
+                            <input type="text" id="lead_actors" name="lead_actors" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Movie</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function fetchMyMovies() {
+        const token = localStorage.getItem("authToken");  // Get the JWT token from localStorage
+        if (!token) {
+            document.getElementById("movie-list").innerHTML = "<p>You need to log in to view your movies.</p>";
+            return;
+        }
+
+        try {
+            const response = await fetch("http://127.0.0.1:8000/api/v1/me/movies", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}` // Include the JWT token in the request header
+                }
+            });
+
+            console.log("Response Status:", response.status);  // Log status for debugging
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch movies. Status: " + response.status);
+            }
+
+            const jsonResponse = await response.json();  // Parse JSON directly
+            const movies = jsonResponse.results;  // Access the array in "results"
+
+            console.log("Parsed Movies:", movies);  // Log parsed movies for verification
+
+            if (!Array.isArray(movies)) {
+                throw new Error("Expected an array of movies but got a different format.");
+            }
+
+            // Proceed with rendering if movies are correctly parsed
+            const movieListContainer = document.getElementById("movie-list");
+            movieListContainer.innerHTML = '';  // Clear previous content
+
+            movies.forEach(movie => {
+                const movieCard = document.createElement("div");
+                movieCard.className = "col-md-6 col-sm-12 col-lg-3";
+
+                movieCard.innerHTML = `
+                    <figure class="card card-product">
+                        <div class="img-wrap">
+                            <img src="${movie.image}" style="width:100%;height:300px" alt="${movie.title}">
+                        </div>
+                        <figcaption class="info-wrap">
+                            <h6 class="title"><a href="#">${movie.title}</a></h6>
+                            <p><strong>Author:</strong> ${movie.author_name}</p>
+                            <p><strong>Genre:</strong> ${movie.genre}</p>
+                            <p><strong>Release Date:</strong> ${movie.publish_date}</p>
+                            <p><strong>Duration:</strong> ${movie.duration} mins</p>
+                            <p><strong>Producer:</strong> ${movie.producer}</p>
+                            <p><strong>Lead Actors:</strong> ${movie.lead_actors}</p>
+                            <div class="rating-wrap">
+                                <span class="rating">${movie.rating ? movie.rating : 'N/A'} / 5</span>
+                            </div>
+                        </figcaption>
+                    </figure>
+                `;
+
+                movieListContainer.appendChild(movieCard);
+            });
+
+            if (movies.length === 0) {
+                movieListContainer.innerHTML = "<p>No movies available.</p>";
+            }
+
+        } catch (error) {
+            console.error("Error loading movies:", error.message);
+            document.getElementById("movie-list").innerHTML = "<p>Failed to load movies. Please try again later.</p>";
+        }
+    }
+
+    // Function to add a movie
+    async function addMovie(movieData) {
+        const token = localStorage.getItem("authToken");  // Get the JWT token from localStorage
+        if (!token) {
+            alert("You need to log in to add movies.");
+            return;
+        }
+
+        try {
+            const response = await fetch("http://127.0.0.1:8000/api/v1/me/movies", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}` // Include the JWT token in the request header
+                },
+                body: JSON.stringify(movieData) // Send the movie data as a JSON string
+            });
+
+            if (response.ok) {
+                alert("Movie added successfully!");
+                $('#addMovieModal').modal('hide'); // Hide the modal after successful submission
+                fetchMyMovies(); // Refresh the movie list
+            } else {
+                alert("Failed to add movie. Please check your input and try again.");
+            }
+        } catch (error) {
+            console.error("Error adding movie:", error.message);
+            alert("An error occurred. Please try again.");
+        }
+    }
+
+    document.getElementById("add-movie-form").addEventListener("submit", function(event) {
+        event.preventDefault(); // Prevent the default form submission
+
+        const movieData = {
+            title: document.getElementById("title").value,
+            genre: document.getElementById("genre").value,
+            publish_date: document.getElementById("publish_date").value,
+            producer: document.getElementById("producer").value,
+            lead_actors: document.getElementById("lead_actors").value,
+        };
+
+        addMovie(movieData); // Call the addMovie function with the movie data
+    });
+
+    document.addEventListener("DOMContentLoaded", fetchMyMovies);
+</script>
+
+{% endblock %}

@@ -30,3 +30,4 @@ class GlobalMovieDetailView(generics.RetrieveAPIView):
     serializer_class = GlobalMovieSerializer
     permission_classes = [AllowAny]
     lookup_field = "id"
+    

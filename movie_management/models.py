@@ -15,7 +15,7 @@ class Movie(BaseModelWithUID):
         max_length=20, choices=MovieGenre.choices, blank=True, null=True
     )
     publish_date = models.DateField()
-    duration = models.DurationField()
+    duration = models.DurationField(null=True, blank=True)
     producer = models.CharField(max_length=155)
     lead_actors = models.CharField(max_length=255)
     status = models.CharField(

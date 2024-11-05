@@ -60,5 +60,6 @@ urlpatterns = [
     path("api/v1/auth/login/", include("core.rest.urls.login")),
     path("api/v1/auth/signup/", include("core.rest.urls.signup")),
     path("", include("core.rest.urls.login")),
-    path("home",include("movie_management.rest.urls.home"))
+    path("home",include("movie_management.rest.urls.home")),
+    path("my-movies",include("movie_management.rest.urls.my_movies")),
 ]
