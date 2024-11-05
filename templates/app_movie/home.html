@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block body_block %}
+<div class="container my-5">
+    <h2 class="my-5">Featured Movies</h2>
+    <div class="row" id="movie-list">
+        <!-- Movies will be dynamically loaded here -->
+    </div>
+</div>
+
+<script>
+    async function fetchMovies() {
+        try {
+            const response = await fetch("http://127.0.0.1:8000/api/v1/global/movies");
+
+            console.log("Response Status:", response.status);  // Log status for debugging
+            const responseText = await response.text();  // Get the raw text response
+            console.log("Raw Response Text:", responseText);  // Log raw response
+
+            const jsonResponse = JSON.parse(responseText);  // Parse JSON manually
+            const movies = jsonResponse.results;  // Access the array in "results"
+
+            console.log("Parsed Movies:", movies);  // Log parsed movies for verification
+
+            if (!Array.isArray(movies)) {
+                throw new Error("Expected an array of movies but got a different format.");
+            }
+
+            // Proceed with rendering if movies are correctly parsed
+            const movieListContainer = document.getElementById("movie-list");
+            movieListContainer.innerHTML = '';  // Clear previous content
+
+            movies.forEach(movie => {
+                const movieCard = document.createElement("div");
+                movieCard.className = "col-md-6 col-sm-12 col-lg-3";
+
+                movieCard.innerHTML = `
+                    <figure class="card card-product">
+                        <figcaption class="info-wrap">
+                            <h6 class="title"><a href="#">${movie.title}</a></h6>
+                            <p><strong>Author:</strong> ${movie.author_name}</p>
+                            <p><strong>Genre:</strong> ${movie.genre}</p>
+                            <p><strong>Release Date:</strong> ${movie.publish_date}</p>
+                            <p><strong>Duration:</strong> ${movie.duration} mins</p>
+                            <p><strong>Producer:</strong> ${movie.producer}</p>
+                            <p><strong>Lead Actors:</strong> ${movie.lead_actors}</p>
+                            <div class="rating-wrap">
+                                <span class="rating">${movie.rating ? movie.rating : 'N/A'} / 5</span>
+                            </div>
+                        </figcaption>
+                    </figure>
+                `;
+
+                movieListContainer.appendChild(movieCard);
+            });
+
+            if (movies.length === 0) {
+                movieListContainer.innerHTML = "<p>No movies available.</p>";
+            }
+
+        } catch (error) {
+            console.error("Error loading movies:", error.message);
+            document.getElementById("movie-list").innerHTML = "<p>Failed to load movies. Please try again later.</p>";
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", fetchMovies);
+</script>
+
+
+{% endblock %}

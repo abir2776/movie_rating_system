@@ -1,33 +1,67 @@
 {% comment %} {% load cart_tag %} {% endcomment %}
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+<nav class="navbar navbar-expand-lg navbar-light bg-dark">
     <div class="container">
         <a class="navbar-brand" href="">Django E-commerce Project</a>
-        <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+        <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ml-auto">
-                {% if request.user.is_authenticated %}
-                <li class="nav-item">
-                    <a href="{% url 'app_order:cart' %}" class="nav-link">
-                    <i class="fa fa-shopping-cart"></i>Cart
-                    {% comment %} <span class="badge badge-light">{{ request.user | cart_total}}</span> {% endcomment %}
-                    </a>
+                <li id="user-info" class="nav-item" style="display: none;">
+                    <span class="navbar-text" id="user-name"></span>
+                    <span class="navbar-text" id="user-phone"></span>
+                    <button class="btn btn-danger btn-sm" id="logout-button">Logout</button>
                 </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown"
-                    role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-user-tie"></i>{{request.user.profile.username}} </a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="{% url 'app_login:profile' %}">Profile</a>
-                        <a class="dropdown-item" href="{% url 'app_payment:orders' %}">Order</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{% url 'app_login:logout' %}">Logout</a>
-                    </div>
+                <li id="login-link" class="nav-item" style="display: none;">
+                    <a href="{% url 'app_login:login' %}" class="btn btn-primary">Login</a>
                 </li>
-                {% else %}
-                <li class="nav-item">
-                    <a href="{% url "app_login:login" %}" class="btn btn-primary">Login</a>
-                </li>
-                {% endif %}
             </ul>
         </div>
     </div>
 </nav>
+
+<script>
+    async function fetchUserData() {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+            // If no token, show login link
+            document.getElementById("login-link").style.display = "block";
+            return;
+        }
+
+        try {
+            const response = await fetch("http://127.0.0.1:8000/api/v1/me", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}` // Include the JWT token
+                }
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+                document.getElementById("user-phone").innerText = userData.results[0].phone; // Ensure 'phone' is correct
+                document.getElementById("user-info").style.display = "flex"; // Show user info
+            } else {
+                console.error("Failed to fetch user data. Status:", response.status);
+                document.getElementById("login-link").style.display = "block"; // Show login link if unauthorized
+            }
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+            document.getElementById("login-link").style.display = "block"; // Show login link on error
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem("authToken"); // Remove token from storage
+        document.getElementById("user-info").style.display = "none"; // Hide user info
+        document.getElementById("login-link").style.display = "block"; // Show login link
+        window.location.href = "{% url 'app_login:login' %}"; // Redirect to login page
+    }
+
+    // Add event listener for logout button
+    document.getElementById("logout-button").addEventListener("click", logout);
+
+    // Fetch user data when the page loads
+    document.addEventListener("DOMContentLoaded", fetchUserData);
+</script>
