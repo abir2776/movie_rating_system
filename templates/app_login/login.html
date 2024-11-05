@@ -1,12 +1,57 @@
 {% extends 'base.html' %}
-{% comment %} {% load crispy_forms_tags %} {% endcomment %}
 {% block title_block %} Login {% endblock %}
 {% block body_block %}
-<form method="POST">
-    {% comment %} {{form|crispy}} {% endcomment %}
+<form id="login-form">
     {% csrf_token %}
+    <div class="form-group">
+        <label for="phone">Phone Number:</label>
+        <input type="tel" id="phone" name="phone" class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" class="form-control" required>
+    </div>
     <button type="submit" class="btn btn-primary btn-sm">Login</button>
 </form>
 <br>
-<p>Doesn't have an account? <a href="">Create New Account</a></p>
+<p>Don't have an account? <a href="{% url 'app_signup:signup' %}">Create New Account</a></p>
+
+<script>
+    document.getElementById("login-form").addEventListener("submit", async function(event) {
+        event.preventDefault(); // Prevent the default form submission
+
+        const phoneInput = document.getElementById("phone").value;
+        const password = document.getElementById("password").value;
+
+        // Automatically prepend "+880" to the phone number
+        const phone = "+880" + phoneInput.replace(/^0/, ""); // Remove leading '0' if present
+
+        try {
+            const response = await fetch("http://127.0.0.1:8000/api/v1/token", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ phone: phone, password: password })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const token = data.token; // Assuming the token is in 'data.token'
+
+                // Store token in localStorage or sessionStorage
+                localStorage.setItem("authToken", token);
+
+                // Redirect to another page or show a success message
+                alert("Login successful!");
+                window.location.href = "/dashboard"; // Change this to your dashboard URL
+            } else {
+                alert("Login failed: Invalid credentials.");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("An error occurred. Please try again.");
+        }
+    });
+</script>
 {% endblock %}
