@@ -14,6 +14,9 @@
                 <li id="login-link" class="nav-item" style="display: none;">
                     <a href="{% url 'app_login:login' %}" class="btn btn-primary">Login</a>
                 </li>
+                <li id="signup-link" class="nav-item" style="display: none;">
+                    <a href="{% url 'app_signup:signup' %}" class="btn btn-primary">SignUp</a>
+                </li>
                 <li id="my-movies-link" class="nav-item" style="display: none;">
                     <a href="{% url 'app_my_movies:my_movies' %}" class="btn btn-primary">My Movies</a>
                 </li>
@@ -51,6 +54,7 @@
             }
         } catch (error) {
             console.error("Error fetching user data:", error);
+            document.getElementById("signup-link").style.display = "block";
             document.getElementById("login-link").style.display = "block"; // Show login link on error
         }
     }
@@ -59,6 +63,7 @@
         localStorage.removeItem("authToken"); // Remove token from storage
         document.getElementById("user-info").style.display = "none"; // Hide user info
         document.getElementById("login-link").style.display = "block"; // Show login link
+        document.getElementById("signup-link").style.display = "block";
         window.location.href = "{% url 'app_login:login' %}"; // Redirect to login page
     }
 
