@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% comment %} {% load crispy_forms_tags %} {% endcomment %}
+{% block title_block %} Login {% endblock %}
+{% block body_block %}
+<form method="POST">
+    {% comment %} {{form|crispy}} {% endcomment %}
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary btn-sm">Login</button>
+</form>
+<br>
+<p>Doesn't have an account? <a href="">Create New Account</a></p>
+{% endblock %}
